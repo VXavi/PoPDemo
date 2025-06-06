@@ -71,19 +71,19 @@ export default function Marketplace({ username }) {
   // Messaging
   const handleOpenMsg = offerId => {
     setMsgOfferId(offerId);
-    fetch(`/api/marketplace/message/${offerId}`)
+    fetch(`${API_BASE}/api/marketplace/message/${offerId}`)
       .then(r => r.json())
       .then(setMessages);
   };
   const handleSendMsg = async e => {
     e.preventDefault();
-    await fetch(`/api/marketplace/message`, {
+    await fetch(`${API_BASE}/api/marketplace/message`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ from: username, to: "Other Party", offerId: msgOfferId, text: msgText })
     });
     setMsgText("");
-    fetch(`/api/marketplace/message/${msgOfferId}`)
+    fetch(`${API_BASE}/api/marketplace/message/${msgOfferId}`)
       .then(r => r.json())
       .then(setMessages);
   };
@@ -174,7 +174,7 @@ export default function Marketplace({ username }) {
               </div>
               <button
                 className="bg-purple-600 text-white px-4 py-2 rounded font-semibold hover:bg-purple-700"
-                onClick={() => handleOpenMsg(o.id)}
+                onClick={() => handleOpenMsg(o._id || o.id)}
               >
                 Message
               </button>
@@ -183,9 +183,9 @@ export default function Marketplace({ username }) {
         </div>
       </div>
       {msgOfferId && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-40">
-          <div className="bg-white p-6 rounded shadow-xl w-full max-w-md relative">
-            <button className="absolute top-2 right-2 text-gray-400" onClick={() => setMsgOfferId(null)}>&times;</button>
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-40" onClick={() => setMsgOfferId(null)}>
+          <div className="bg-white p-6 rounded shadow-xl w-full max-w-md relative" onClick={e => e.stopPropagation()}>
+            <button className="absolute top-2 right-2 text-gray-400 text-2xl" onClick={() => setMsgOfferId(null)}>&times;</button>
             <h4 className="font-bold mb-2">Messages</h4>
             <div className="mb-2 max-h-40 overflow-y-auto">
               {messages.map((m, i) => (
@@ -199,9 +199,9 @@ export default function Marketplace({ username }) {
                 value={msgText}
                 onChange={e => setMsgText(e.target.value)}
                 placeholder="Type your message..."
-                required
+                autoFocus
               />
-              <button className="bg-blue-500 text-white px-3 py-1 rounded" type="submit">Send</button>
+              <button className="bg-blue-600 text-white px-4 py-1 rounded font-semibold" type="submit" disabled={!msgText.trim()}>Send</button>
             </form>
           </div>
         </div>
