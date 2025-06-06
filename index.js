@@ -18,6 +18,14 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/popdemo',
 app.use(cors());
 app.use(bodyParser.json());
 
+// Defensive: catch JSON parsing errors
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ error: 'Invalid JSON' });
+  }
+  next();
+});
+
 // MongoDB model for offers
 const Offer = require('./offers.model');
 const Message = require('./messages.model');
@@ -29,21 +37,26 @@ const Message = require('./messages.model');
 app.get('/api/marketplace/message/:offerId', async (req, res) => {
   try {
     const msgs = await Message.find({ offerId: req.params.offerId }).sort({ created: 1 });
-    res.json(msgs);
+    res.setHeader('Content-Type', 'application/json');
+res.json(msgs);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.setHeader('Content-Type', 'application/json');
+res.status(500).json({ error: e.message });
   }
 });
 // Post a new message
 app.post('/api/marketplace/message', async (req, res) => {
   try {
     const { offerId, from, to, text } = req.body;
-    if (!offerId || !from || !text) return res.status(400).json({ error: 'Missing fields' });
+    if (!offerId || !from || !text) return res.setHeader('Content-Type', 'application/json');
+res.status(400).json({ error: 'Missing fields' });
     const msg = new Message({ offerId, from, to, text });
     await msg.save();
-    res.status(201).json(msg);
+    res.setHeader('Content-Type', 'application/json');
+res.status(201).json(msg);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.setHeader('Content-Type', 'application/json');
+res.status(500).json({ error: e.message });
   }
 });
 
@@ -51,9 +64,11 @@ app.post('/api/marketplace/message', async (req, res) => {
 app.get('/api/marketplace/offers', async (req, res) => {
   try {
     const offers = await Offer.find({});
-    res.json(offers);
+    res.setHeader('Content-Type', 'application/json');
+res.json(offers);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.setHeader('Content-Type', 'application/json');
+res.status(500).json({ error: e.message });
   }
 });
 // Post a new offer
@@ -61,25 +76,31 @@ app.post('/api/marketplace/offers', async (req, res) => {
   try {
     const { user, offer, reveal, preset, tokenAmount, cap } = req.body;
     if (!user || !offer || !preset || !tokenAmount || !cap) {
-      return res.status(400).json({ error: 'Missing required fields.' });
+      return res.setHeader('Content-Type', 'application/json');
+res.status(400).json({ error: 'Missing required fields.' });
     }
     if (tokenAmount > cap) {
-      return res.status(400).json({ error: 'Token amount exceeds cap.' });
+      return res.setHeader('Content-Type', 'application/json');
+res.status(400).json({ error: 'Token amount exceeds cap.' });
     }
     const newOffer = new Offer({ user, offer, reveal, preset, tokenAmount, cap });
     await newOffer.save();
-    res.status(201).json(newOffer);
+    res.setHeader('Content-Type', 'application/json');
+res.status(201).json(newOffer);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.setHeader('Content-Type', 'application/json');
+res.status(500).json({ error: e.message });
   }
 });
 // Delete an offer
 app.delete('/api/marketplace/offers/:id', async (req, res) => {
   try {
     await Offer.findByIdAndDelete(req.params.id);
-    res.json({ success: true });
+    res.setHeader('Content-Type', 'application/json');
+res.json({ success: true });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.setHeader('Content-Type', 'application/json');
+res.status(500).json({ error: e.message });
   }
 });
 
@@ -89,9 +110,11 @@ app.delete('/api/marketplace/offers/:id', async (req, res) => {
 app.get('/api/books/:username', async (req, res) => {
   try {
     const barters = await Barter.find({ username: req.params.username });
-    res.json(barters);
+    res.setHeader('Content-Type', 'application/json');
+res.json(barters);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.setHeader('Content-Type', 'application/json');
+res.status(500).json({ error: e.message });
   }
 });
 // Add a new barter for a user
@@ -99,9 +122,11 @@ app.post('/api/books/:username', async (req, res) => {
   try {
     const barter = new Barter({ ...req.body, username: req.params.username });
     await barter.save();
-    res.status(201).json(barter);
+    res.setHeader('Content-Type', 'application/json');
+res.status(201).json(barter);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.setHeader('Content-Type', 'application/json');
+res.status(500).json({ error: e.message });
   }
 });
 // Progress a barter day
@@ -119,9 +144,11 @@ app.patch('/api/books/:username/:barterId/progress', async (req, res) => {
     barter.lastProgressNote = note;
     barter.progressPending = true;
     await barter.save();
-    res.json({ barter, note });
+    res.setHeader('Content-Type', 'application/json');
+res.json({ barter, note });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.setHeader('Content-Type', 'application/json');
+res.status(500).json({ error: e.message });
   }
 });
 // Approve day progression
@@ -132,9 +159,11 @@ app.patch('/api/books/:username/:barterId/approve', async (req, res) => {
     barter.progressPending = false;
     barter.approved = true;
     await barter.save();
-    res.json(barter);
+    res.setHeader('Content-Type', 'application/json');
+res.json(barter);
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.setHeader('Content-Type', 'application/json');
+res.status(500).json({ error: e.message });
   }
 });
 
@@ -152,7 +181,8 @@ const axios = require('axios');
 app.get('/api/minting/finverse/auth-url', (req, res) => {
   const redirectUri = process.env.FINVERSE_REDIRECT_URI || 'http://localhost:4000/api/minting/finverse/callback';
   const url = `https://api.finverse.com/v1/auth/authorize?client_id=${process.env.FINVERSE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=accounts%20transactions`;
-  res.json({ url });
+  res.setHeader('Content-Type', 'application/json');
+res.json({ url });
 });
 
 app.get('/api/minting/finverse/callback', async (req, res) => {
@@ -185,9 +215,11 @@ app.get('/api/minting/finverse/callback', async (req, res) => {
     const basicOperatingCosts = txs.filter(t => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0) / daysOperating;
     const conservativeModifier = 0.7;
     const cap = Math.round(((avgDailySales * daysOperating) - (basicOperatingCosts * daysOperating)) * conservativeModifier);
-    res.json({ popTokenCap: cap > 0 ? cap : 0, account: accountsResp.data.accounts[0] });
+    res.setHeader('Content-Type', 'application/json');
+res.json({ popTokenCap: cap > 0 ? cap : 0, account: accountsResp.data.accounts[0] });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.setHeader('Content-Type', 'application/json');
+res.status(500).json({ error: e.message });
   }
 });
 
@@ -201,7 +233,8 @@ app.post('/api/minting/brankas', async (req, res) => {
   // See Brankas Statement API docs for required fields
   const { bank_code, account_number, start_date, end_date } = req.body;
   if (!bank_code || !account_number || !start_date || !end_date) {
-    return res.status(400).json({ error: 'Missing required fields.' });
+    return res.setHeader('Content-Type', 'application/json');
+res.status(400).json({ error: 'Missing required fields.' });
   }
   try {
     const brankasResp = await axios.post('https://api.brankas.com/statement', {
@@ -223,9 +256,11 @@ app.post('/api/minting/brankas', async (req, res) => {
     const basicOperatingCosts = txs.filter(t => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0) / daysOperating;
     const conservativeModifier = 0.7;
     const cap = Math.round(((avgDailySales * daysOperating) - (basicOperatingCosts * daysOperating)) * conservativeModifier);
-    res.json({ popTokenCap: cap > 0 ? cap : 0, account_number });
+    res.setHeader('Content-Type', 'application/json');
+res.json({ popTokenCap: cap > 0 ? cap : 0, account_number });
   } catch (e) {
-    res.status(500).json({ error: e.response?.data || e.message });
+    res.setHeader('Content-Type', 'application/json');
+res.status(500).json({ error: e.response?.data || e.message });
   }
 });
 
@@ -233,36 +268,43 @@ app.post('/api/minting/brankas', async (req, res) => {
 // Post a new offer
 app.post('/api/marketplace/offers', (req, res) => {
   const { user, offer, reveal } = req.body;
-  if (!user || !offer) return res.status(400).json({ error: 'Missing user or offer.' });
+  if (!user || !offer) return res.setHeader('Content-Type', 'application/json');
+res.status(400).json({ error: 'Missing user or offer.' });
   const newOffer = { id: Date.now(), user, offer, reveal, created: new Date() };
   offers.push(newOffer);
-  res.json({ success: true, offer: newOffer });
+  res.setHeader('Content-Type', 'application/json');
+res.json({ success: true, offer: newOffer });
 });
 // Get all offers
 app.get('/api/marketplace/offers', (req, res) => {
-  res.json(offers);
+  res.setHeader('Content-Type', 'application/json');
+res.json(offers);
 });
 // Remove an offer
 app.delete('/api/marketplace/offers/:id', (req, res) => {
   const idx = offers.findIndex(o => o.id == req.params.id);
   if (idx !== -1) {
     offers.splice(idx, 1);
-    return res.json({ success: true });
+    return res.setHeader('Content-Type', 'application/json');
+res.json({ success: true });
   }
   res.status(404).json({ error: 'Offer not found.' });
 });
 // Messaging between matched users (only if both are interested)
 app.post('/api/marketplace/message', (req, res) => {
   const { from, to, offerId, text } = req.body;
-  if (!from || !to || !offerId || !text) return res.status(400).json({ error: 'Missing fields.' });
+  if (!from || !to || !offerId || !text) return res.setHeader('Content-Type', 'application/json');
+res.status(400).json({ error: 'Missing fields.' });
   // Only allow if both parties have expressed interest (simulated demo logic)
   if (!messages[offerId]) messages[offerId] = [];
   messages[offerId].push({ from, to, text, time: new Date() });
-  res.json({ success: true });
+  res.setHeader('Content-Type', 'application/json');
+res.json({ success: true });
 });
 // Get messages for an offer
 app.get('/api/marketplace/message/:offerId', (req, res) => {
-  res.json(messages[req.params.offerId] || []);
+  res.setHeader('Content-Type', 'application/json');
+res.json(messages[req.params.offerId] || []);
 });
 
 app.get('/', (req, res) => {
