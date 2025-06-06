@@ -12,8 +12,10 @@ export default function Marketplace({ username }) {
   const [msgText, setMsgText] = useState("");
 
   // Fetch offers
+  const API_BASE = process.env.REACT_APP_API_BASE || "";
+
   useEffect(() => {
-    fetch("/api/marketplace/offers")
+    fetch(`${API_BASE}/api/marketplace/offers`)
       .then(r => r.json())
       .then(setOffers)
       .catch(() => {
@@ -37,7 +39,7 @@ export default function Marketplace({ username }) {
     }
     setLoading(true);
     try {
-      const resp = await fetch("/api/marketplace/offers", {
+      const resp = await fetch(`${API_BASE}/api/marketplace/offers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user: username, offer: offerText, reveal, preset: userPresetName, tokenAmount: Number(tokenAmount), cap: userCap })
@@ -51,7 +53,7 @@ export default function Marketplace({ username }) {
       setOfferText("");
       setTokenAmount("");
       setOfferError("");
-      fetch("/api/marketplace/offers").then(r => r.json()).then(setOffers);
+      fetch(`${API_BASE}/api/marketplace/offers`).then(r => r.json()).then(setOffers);
     } catch (err) {
       setOfferError("Network error posting offer.");
     }
@@ -62,8 +64,8 @@ export default function Marketplace({ username }) {
 
   // Remove offer
   const handleRemove = async id => {
-    await fetch(`/api/marketplace/offers/${id}`, { method: "DELETE" });
-    fetch("/api/marketplace/offers").then(r => r.json()).then(setOffers);
+    await fetch(`${API_BASE}/api/marketplace/offers/${id}`, { method: "DELETE" });
+    fetch(`${API_BASE}/api/marketplace/offers`).then(r => r.json()).then(setOffers);
   };
 
   // Messaging
