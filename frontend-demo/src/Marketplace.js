@@ -70,11 +70,30 @@ export default function Marketplace({ username }) {
 
   // Messaging
   const handleOpenMsg = offerId => {
+    if (!offerId) {
+      console.warn('No offerId provided to handleOpenMsg');
+      return;
+    }
     setMsgOfferId(offerId);
+    setMessages([]); // Clear previous messages
     fetch(`${API_BASE}/api/marketplace/message/${offerId}`)
       .then(r => r.json())
-      .then(setMessages);
+      .then(setMessages)
+      .catch(e => {
+        setMessages([]);
+        console.error('Error fetching messages:', e);
+      });
+    console.log('Modal opened for offerId:', offerId);
   };
+
+  // Close modal and reset
+  const handleCloseMsgModal = () => {
+    setMsgOfferId(null);
+    setMessages([]);
+    setMsgText("");
+    console.log('Modal closed');
+  };
+
   const handleSendMsg = async e => {
     e.preventDefault();
     await fetch(`${API_BASE}/api/marketplace/message`, {
@@ -183,9 +202,9 @@ export default function Marketplace({ username }) {
         </div>
       </div>
       {msgOfferId && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-40" onClick={() => setMsgOfferId(null)}>
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-40" onClick={handleCloseMsgModal}>
           <div className="bg-white p-6 rounded shadow-xl w-full max-w-md relative" onClick={e => e.stopPropagation()}>
-            <button className="absolute top-2 right-2 text-gray-400 text-2xl" onClick={() => setMsgOfferId(null)}>&times;</button>
+            <button className="absolute top-2 right-2 text-gray-400 text-2xl" onClick={handleCloseMsgModal}>&times;</button>
             <h4 className="font-bold mb-2">Messages</h4>
             <div className="mb-2 max-h-40 overflow-y-auto">
               {messages.map((m, i) => (
