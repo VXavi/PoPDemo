@@ -12,6 +12,16 @@ import Books from "./Books";
 function App() {
   const [username, setUsername] = useState("");
   const [showUsernamePrompt, setShowUsernamePrompt] = useState(true);
+
+  // On mount, restore username from localStorage if present
+  React.useEffect(() => {
+    const saved = localStorage.getItem("pop_demo_username");
+    if (saved) {
+      setUsername(saved);
+      setShowUsernamePrompt(false);
+    }
+  }, []);
+
   const [showPresetSelect, setShowPresetSelect] = useState(false);
   const [selectedPresetName, setSelectedPresetName] = useState("");
   const [tab, setTab] = useState("minting");
@@ -49,6 +59,14 @@ function App() {
   const [finverseUrl, setFinverseUrl] = useState("");
   const [showQR, setShowQR] = useState(false);
 
+  // Save username to localStorage when set
+  React.useEffect(() => {
+    if (username && !showUsernamePrompt) {
+      localStorage.setItem("pop_demo_username", username);
+    }
+  }, [username, showUsernamePrompt]);
+
+
   const handleFinverseConnect = async (qr = false) => {
     setLoading(true);
     setError("");
@@ -74,6 +92,21 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-8">
+      {/* New User button */}
+      {!showUsernamePrompt && (
+        <div className="w-full max-w-lg flex justify-end mb-2">
+          <button
+            className="text-xs px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 text-gray-700"
+            onClick={() => {
+              localStorage.removeItem("pop_demo_username");
+              setUsername("");
+              setShowUsernamePrompt(true);
+            }}
+          >
+            New User
+          </button>
+        </div>
+      )}
       <div className="bg-white rounded-xl shadow p-6 w-full max-w-lg mb-6">
         <div className="flex space-x-4 mb-6">
           <button

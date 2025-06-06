@@ -30,21 +30,34 @@ export default function Marketplace({ username }) {
 
   const handlePost = async e => {
     e.preventDefault();
+    setOfferError("");
     if (!tokenAmount || isNaN(tokenAmount) || Number(tokenAmount) < 1 || Number(tokenAmount) > userCap) {
-      alert(`You must offer between 1 and ${userCap} tokens.`);
+      setOfferError(`You must offer between 1 and ${userCap} tokens.`);
       return;
     }
     setLoading(true);
-    await fetch("/api/marketplace/offers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user: username, offer: offerText, reveal, preset: userPresetName, tokenAmount: Number(tokenAmount), cap: userCap })
-    });
-    setOfferText("");
-    setTokenAmount("");
+    try {
+      const resp = await fetch("/api/marketplace/offers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user: username, offer: offerText, reveal, preset: userPresetName, tokenAmount: Number(tokenAmount), cap: userCap })
+      });
+      if (!resp.ok) {
+        const err = await resp.json();
+        setOfferError(err.error || "Failed to post offer.");
+        setLoading(false);
+        return;
+      }
+      setOfferText("");
+      setTokenAmount("");
+      setOfferError("");
+      fetch("/api/marketplace/offers").then(r => r.json()).then(setOffers);
+    } catch (err) {
+      setOfferError("Network error posting offer.");
+    }
     setLoading(false);
-    fetch("/api/marketplace/offers").then(r => r.json()).then(setOffers);
   };
+
 
 
   // Remove offer
@@ -74,6 +87,18 @@ export default function Marketplace({ username }) {
   };
 
 
+
+  // Error state for offer posting
+  const [offerError, setOfferError] = useState("");
+
+  // Helper: is offer valid
+  const isOfferValid =
+    offerText &&
+    tokenAmount &&
+    !isNaN(tokenAmount) &&
+    Number(tokenAmount) >= 1 &&
+    Number(tokenAmount) <= userCap &&
+    !loading;
 
   return (
     <div className="p-4 max-w-3xl mx-auto">
@@ -121,12 +146,15 @@ export default function Marketplace({ username }) {
         </div>
         <button
           className="bg-blue-600 text-white px-6 py-2 rounded font-semibold disabled:opacity-50"
-          disabled={!offerText || !tokenAmount || loading}
+          disabled={!isOfferValid}
           type="submit"
         >
           Post Offer
         </button>
       </form>
+      {offerError && (
+        <div className="text-red-600 text-sm mb-4">{offerError}</div>
+      )}
       {/* Offers feed */}
       <div className="mb-8">
         <h3 className="font-semibold text-lg mb-3 text-gray-800 flex items-center gap-2"><span role="img" aria-label="feed">📢</span> Offers Feed</h3>

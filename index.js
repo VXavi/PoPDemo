@@ -18,9 +18,47 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/popdemo',
 app.use(cors());
 app.use(bodyParser.json());
 
-// In-memory ephemeral storage for marketplace offers and messages
-const offers = [];
-const messages = {};
+// MongoDB model for offers
+const Offer = require('./offers.model');
+const messages = {}; // (Messages can stay in-memory for now)
+
+// --- MARKETPLACE OFFERS API (MongoDB) ---
+// Get all offers
+app.get('/api/marketplace/offers', async (req, res) => {
+  try {
+    const offers = await Offer.find({});
+    res.json(offers);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+// Post a new offer
+app.post('/api/marketplace/offers', async (req, res) => {
+  try {
+    const { user, offer, reveal, preset, tokenAmount, cap } = req.body;
+    if (!user || !offer || !preset || !tokenAmount || !cap) {
+      return res.status(400).json({ error: 'Missing required fields.' });
+    }
+    if (tokenAmount > cap) {
+      return res.status(400).json({ error: 'Token amount exceeds cap.' });
+    }
+    const newOffer = new Offer({ user, offer, reveal, preset, tokenAmount, cap });
+    await newOffer.save();
+    res.status(201).json(newOffer);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+// Delete an offer
+app.delete('/api/marketplace/offers/:id', async (req, res) => {
+  try {
+    await Offer.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 
 // --- BOOKS LEDGER API (MongoDB) ---
 // Get all barters for a user
