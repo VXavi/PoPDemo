@@ -20,9 +20,33 @@ app.use(bodyParser.json());
 
 // MongoDB model for offers
 const Offer = require('./offers.model');
-const messages = {}; // (Messages can stay in-memory for now)
+const Message = require('./messages.model');
 
 // --- MARKETPLACE OFFERS API (MongoDB) ---
+
+// --- MARKETPLACE MESSAGES API (MongoDB) ---
+// Get messages for an offer
+app.get('/api/marketplace/message/:offerId', async (req, res) => {
+  try {
+    const msgs = await Message.find({ offerId: req.params.offerId }).sort({ created: 1 });
+    res.json(msgs);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+// Post a new message
+app.post('/api/marketplace/message', async (req, res) => {
+  try {
+    const { offerId, from, to, text } = req.body;
+    if (!offerId || !from || !text) return res.status(400).json({ error: 'Missing fields' });
+    const msg = new Message({ offerId, from, to, text });
+    await msg.save();
+    res.status(201).json(msg);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Get all offers
 app.get('/api/marketplace/offers', async (req, res) => {
   try {
