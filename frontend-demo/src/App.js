@@ -7,6 +7,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import Marketplace from "./Marketplace";
 import PRESETS, { getPresetWithCap, getAllPresetsWithCap } from "./Presets";
 import Books from "./Books";
+import Contacts from "./Contacts";
 
 
 function App() {
@@ -127,6 +128,12 @@ function App() {
           >
             Books
           </button>
+          <button
+            className={`tab-btn${tab === "contacts" ? " active" : ""}`}
+            onClick={() => setTab("contacts")}
+          >
+            Contacts
+          </button>
         </div>
         {tab === "minting" && (
           <div>
@@ -228,6 +235,7 @@ function App() {
         )}
         {tab === "marketplace" && <Marketplace username={username} />}
         {tab === "books" && <Books username={username} />}
+        {tab === "contacts" && <Contacts username={username} />}
       </div>
       {showUsernamePrompt && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
