@@ -202,29 +202,105 @@ export default function Marketplace({ username }) {
         </div>
       </div>
       {msgOfferId && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-40" onClick={handleCloseMsgModal}>
-          <div className="bg-white p-6 rounded shadow-xl w-full max-w-md relative" onClick={e => e.stopPropagation()}>
-            <button className="absolute top-2 right-2 text-gray-400 text-2xl" onClick={handleCloseMsgModal}>&times;</button>
-            <h4 className="font-bold mb-2">Messages</h4>
-            <div className="mb-2 max-h-40 overflow-y-auto">
-              {messages.map((m, i) => (
-                <div key={i} className="mb-1 text-sm"><span className="font-semibold">{m.from}:</span> {m.text}</div>
-              ))}
-              {messages.length === 0 && <div className="text-gray-400">No messages yet.</div>}
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-all duration-300"
+    onClick={handleCloseMsgModal}
+    aria-modal="true"
+    role="dialog"
+  >
+    <div
+      className="relative w-full max-w-2xl md:w-1/2 h-1/2 bg-white rounded-2xl shadow-2xl flex flex-col animate-fade-in-up overflow-hidden"
+      style={{ minHeight: '350px' }}
+      onClick={e => e.stopPropagation()}
+    >
+      <button
+        className="absolute top-4 right-4 text-gray-400 text-3xl hover:text-gray-600 transition-colors"
+        onClick={handleCloseMsgModal}
+        aria-label="Close chat"
+        type="button"
+      >
+        &times;
+      </button>
+      <h4 className="font-bold text-xl mb-2 text-blue-800 text-center pt-4 pb-2">Chat</h4>
+      <div className="flex-1 px-4 pb-2 overflow-y-auto custom-scrollbar">
+        {messages.length === 0 && (
+          <div className="text-gray-400 text-center pt-10">No messages yet.</div>
+        )}
+        {messages.map((m, i) => (
+          <div
+            key={i}
+            className={`flex mb-3 ${m.from === username ? 'justify-end' : 'justify-start'}`}
+          >
+            <div
+              className={`rounded-2xl px-4 py-2 max-w-[70%] text-sm shadow-md break-words ${
+                m.from === username
+                  ? 'bg-blue-100 text-blue-900 self-end animate-bounce-in-right'
+                  : 'bg-gray-100 text-gray-800 self-start animate-bounce-in-left'
+              }`}
+            >
+              <span className="block font-semibold text-xs mb-1 opacity-60">
+                {m.from === username ? 'You' : m.from}
+              </span>
+              {m.text}
             </div>
-            <form onSubmit={handleSendMsg} className="flex space-x-2">
-              <input
-                className="border px-2 py-1 rounded flex-1"
-                value={msgText}
-                onChange={e => setMsgText(e.target.value)}
-                placeholder="Type your message..."
-                autoFocus
-              />
-              <button className="bg-blue-600 text-white px-4 py-1 rounded font-semibold" type="submit" disabled={!msgText.trim()}>Send</button>
-            </form>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
+      <form
+        onSubmit={handleSendMsg}
+        className="flex items-center gap-2 px-4 py-3 border-t bg-white"
+        autoComplete="off"
+      >
+        <input
+          className="flex-1 rounded-full border border-gray-300 px-4 py-2 outline-none focus:ring-2 focus:ring-blue-300 transition-all"
+          value={msgText}
+          onChange={e => setMsgText(e.target.value)}
+          placeholder="Type your message..."
+          autoFocus
+        />
+        <button
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-semibold shadow transition-all disabled:opacity-50"
+          type="submit"
+          disabled={!msgText.trim()}
+        >
+          Send
+        </button>
+      </form>
+    </div>
+    {/* Animations */}
+    <style>{`
+      @keyframes fade-in-up {
+        0% { opacity: 0; transform: translateY(60px) scale(0.98); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      .animate-fade-in-up {
+        animation: fade-in-up 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+      }
+      @keyframes bounce-in-right {
+        0% { opacity: 0; transform: translateX(40px) scale(0.96); }
+        100% { opacity: 1; transform: translateX(0) scale(1); }
+      }
+      .animate-bounce-in-right {
+        animation: bounce-in-right 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+      }
+      @keyframes bounce-in-left {
+        0% { opacity: 0; transform: translateX(-40px) scale(0.96); }
+        100% { opacity: 1; transform: translateX(0) scale(1); }
+      }
+      .animate-bounce-in-left {
+        animation: bounce-in-left 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 6px;
+      }
+    `}</style>
+  </div>
+)}
     </div>
   );
 }
